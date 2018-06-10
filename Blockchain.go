@@ -10,10 +10,10 @@ type Blockchain struct {
 }
 
 // AddBlock add a block to current chain
-func (bc *Blockchain) AddBlock(blockdata []byte) {
+func (bc *Blockchain) addBlock(blockdata []byte) {
 	//chain is empty, initialize chain with genesis block
 	if bc.Chain == nil {
-		genBlock := GetGenesisBlock()
+		genBlock := getGenesisBlock()
 		genBlock.encryptData()
 		bc.Chain = []Block{genBlock}
 	}
@@ -21,30 +21,56 @@ func (bc *Blockchain) AddBlock(blockdata []byte) {
 	//create the new block. lastHash link the new block and last block together
 	var lastBlock = bc.Chain[len(bc.Chain)-1]
 
-	var newBlock = MineBlock(lastBlock, blockdata)
+	var newBlock = mineBlock(lastBlock, blockdata)
 
 	//append block to chain
 	bc.Chain = append(bc.Chain, newBlock)
 }
 
 //ValidateChain check blockchain. if invalid, return false.
-func (bc Blockchain) ValidateChain() bool {
+func (bc Blockchain) validateChain() bool {
+
+	if len(bc.Chain) == 0 {
+		return false
+	}
+
+	//if the first block is not genesis, return false
+	if bc.Chain[0].lasthash != "0000000000" && string(bc.Chain[0].data) != string([]byte("0000000000")) {
+		return false
+	}
+
+	//compare hash value of each chained blocks
+	for i := 1; i < len(bc.Chain); i++ {
+		currentBlock := bc.Chain[i]
+		lastBlock := bc.Chain[i-1]
+		if currentBlock.lasthash != lastBlock.hash {
+			return false
+		}
+	}
 
 	return true
 }
 
+//replaceChain replace current chain with longer valid chain
+func (bc *Blockchain) replaceChain(newBc Blockchain) {
+	//if new blockchain is longer and
+	if len(newBc.Chain) > len(bc.Chain) && newBc.validateChain() {
+		bc.Chain = newBc.Chain
+	}
+}
+
 // GetGenesisBlock Create genesis block. First block of the chain
-func GetGenesisBlock() Block {
+func getGenesisBlock() Block {
 	var b Block
 	b.timestamp = time.Now()
-	b.hash = "0000000000"
 	b.lasthash = "0000000000"
 	b.data = []byte("0000000000")
+	b.encryptData()
 	return b
 }
 
 // MineBlock Create a block for the chain
-func MineBlock(lastBlock Block, blockData []byte) Block {
+func mineBlock(lastBlock Block, blockData []byte) Block {
 	var newBlock = Block{
 		timestamp: time.Now(),
 		lasthash:  lastBlock.hash,

@@ -31,7 +31,7 @@ func (b Block) toString() string {
 
 //EncryptData encrypt data and store the hash value in hash property of block
 func (b *Block) encryptData() {
-	rawData := append([]byte(b.timestamp.String()+b.lasthash+b.hash), b.data...)
+	rawData := append([]byte(b.timestamp.String()+b.lasthash), b.data...)
 	hashValue := createHash(rawData)
 	b.hash = hashValue
 }

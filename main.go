@@ -8,7 +8,7 @@ func main() {
 	var bc Blockchain
 	var data []byte
 	data = []byte("1111111111")
-	bc.AddBlock(data)
+	bc.addBlock(data)
 
 	var chain []Block
 	chain = bc.Chain
