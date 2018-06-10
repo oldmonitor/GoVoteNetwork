@@ -16,4 +16,5 @@ func main() {
 	for i := 0; i < len(chain); i++ {
 		fmt.Println(chain[i].ToString())
 	}
+
 }

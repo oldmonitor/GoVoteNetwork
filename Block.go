@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//Block is struct class for Block
 type Block struct {
 	timestamp time.Time
 	lasthash  string
@@ -14,6 +15,7 @@ type Block struct {
 	data      []byte
 }
 
+//ToString return string representation of the block
 func (b Block) ToString() string {
 	output := fmt.Sprintf(`Block-
 		Timestamp: %s
@@ -27,12 +29,14 @@ func (b Block) ToString() string {
 	return output
 }
 
+//EncryptData encrypt data and store the hash value in hash property of block
 func (b *Block) EncryptData() {
 	rawData := append([]byte(b.timestamp.String()+b.lasthash+b.hash), b.data...)
 	hashValue := CreateHash(rawData)
 	b.hash = hashValue
 }
 
+//CreateHash create a has value of given data
 func CreateHash(data []byte) string {
 	h := sha256.New()
 	h.Write(data)
