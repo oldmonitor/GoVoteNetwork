@@ -14,7 +14,7 @@ func main() {
 	chain = bc.Chain
 
 	for i := 0; i < len(chain); i++ {
-		fmt.Println(chain[i].ToString())
+		fmt.Println(chain[i].toString())
 	}
 
 }

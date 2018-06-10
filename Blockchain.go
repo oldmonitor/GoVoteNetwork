@@ -14,18 +14,14 @@ func (bc *Blockchain) AddBlock(blockdata []byte) {
 	//chain is empty, initialize chain with genesis block
 	if bc.Chain == nil {
 		genBlock := GetGenesisBlock()
-		genBlock.EncryptData()
+		genBlock.encryptData()
 		bc.Chain = []Block{genBlock}
 	}
 
 	//create the new block. lastHash link the new block and last block together
 	var lastBlock = bc.Chain[len(bc.Chain)-1]
-	var newBlock = Block{
-		timestamp: time.Now(),
-		lasthash:  lastBlock.hash,
-		data:      blockdata}
 
-	newBlock.EncryptData()
+	var newBlock = MineBlock(lastBlock, blockdata)
 
 	//append block to chain
 	bc.Chain = append(bc.Chain, newBlock)
@@ -48,11 +44,13 @@ func GetGenesisBlock() Block {
 }
 
 // MineBlock Create a block for the chain
-func MineBlock(lastBlock Block, data []byte) Block {
-	var b Block
-	b.timestamp = time.Now()
-	b.hash = "0000000000"
-	b.lasthash = lastBlock.hash
-	b.data = data
-	return b
+func MineBlock(lastBlock Block, blockData []byte) Block {
+	var newBlock = Block{
+		timestamp: time.Now(),
+		lasthash:  lastBlock.hash,
+		data:      blockData}
+
+	newBlock.encryptData()
+
+	return newBlock
 }

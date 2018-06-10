@@ -16,7 +16,7 @@ type Block struct {
 }
 
 //ToString return string representation of the block
-func (b Block) ToString() string {
+func (b Block) toString() string {
 	output := fmt.Sprintf(`Block-
 		Timestamp: %s
 		Last Hash: %s
@@ -30,14 +30,14 @@ func (b Block) ToString() string {
 }
 
 //EncryptData encrypt data and store the hash value in hash property of block
-func (b *Block) EncryptData() {
+func (b *Block) encryptData() {
 	rawData := append([]byte(b.timestamp.String()+b.lasthash+b.hash), b.data...)
-	hashValue := CreateHash(rawData)
+	hashValue := createHash(rawData)
 	b.hash = hashValue
 }
 
 //CreateHash create a has value of given data
-func CreateHash(data []byte) string {
+func createHash(data []byte) string {
 	h := sha256.New()
 	h.Write(data)
 	md := h.Sum(nil)
