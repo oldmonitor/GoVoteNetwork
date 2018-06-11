@@ -50,3 +50,47 @@ func TestBlockChainValidation(t *testing.T) {
 	}
 
 }
+
+//longer chain should replace current chain
+func TestTryingToReplaceWithLongerChain(t *testing.T) {
+	var bc Blockchain
+	bc.addBlock([]byte("new transaction 1"))
+	bc.addBlock([]byte("new transaction 1"))
+	chain := bc.Chain
+
+	var bcLongerChain Blockchain
+	bcLongerChain.Chain = chain
+
+	bcLongerChain.addBlock([]byte("new transaction 3"))
+
+	var beforeLength = len(bc.Chain)
+	bc.replaceChain(bcLongerChain)
+	var afterLength = len(bc.Chain)
+
+	if afterLength <= beforeLength {
+		t.Errorf("Chain did not get replaced by longer chain")
+		return
+	}
+}
+
+//shorter chain should not replace current chain
+func TestTryingToReplaceWithShorterChain(t *testing.T) {
+	var bc Blockchain
+	bc.addBlock([]byte("new transaction 1"))
+	bc.addBlock([]byte("new transaction 1"))
+	chain := bc.Chain
+
+	var bcShorterChain Blockchain
+	bcShorterChain.Chain = chain
+
+	bc.addBlock([]byte("new transaction 3"))
+
+	var beforeLength = len(bc.Chain)
+	bc.replaceChain(bcShorterChain)
+	var afterLength = len(bc.Chain)
+
+	if afterLength != beforeLength {
+		t.Errorf("Chain get replaced by shorter chain")
+		return
+	}
+}
