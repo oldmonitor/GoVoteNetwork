@@ -35,7 +35,7 @@ func (bc Blockchain) validateChain() bool {
 	}
 
 	//if the first block is not genesis, return false
-	if bc.Chain[0].lasthash != "0000000000" && string(bc.Chain[0].data) != string([]byte("0000000000")) {
+	if bc.Chain[0].Lasthash != "0000000000" && string(bc.Chain[0].Data) != string([]byte("0000000000")) {
 		return false
 	}
 
@@ -43,7 +43,7 @@ func (bc Blockchain) validateChain() bool {
 	for i := 1; i < len(bc.Chain); i++ {
 		currentBlock := bc.Chain[i]
 		lastBlock := bc.Chain[i-1]
-		if currentBlock.lasthash != lastBlock.hash {
+		if currentBlock.Lasthash != lastBlock.Hash {
 			return false
 		}
 	}
@@ -62,9 +62,9 @@ func (bc *Blockchain) replaceChain(newBc Blockchain) {
 // GetGenesisBlock Create genesis block. First block of the chain
 func getGenesisBlock() Block {
 	var b Block
-	b.timestamp = time.Now()
-	b.lasthash = "0000000000"
-	b.data = []byte("0000000000")
+	b.Timestamp = time.Now()
+	b.Lasthash = "0000000000"
+	b.Data = []byte("0000000000")
 	b.encryptData()
 	return b
 }
@@ -72,9 +72,9 @@ func getGenesisBlock() Block {
 // MineBlock Create a block for the chain
 func mineBlock(lastBlock Block, blockData []byte) Block {
 	var newBlock = Block{
-		timestamp: time.Now(),
-		lasthash:  lastBlock.hash,
-		data:      blockData}
+		Timestamp: time.Now(),
+		Lasthash:  lastBlock.Hash,
+		Data:      blockData}
 
 	newBlock.encryptData()
 
