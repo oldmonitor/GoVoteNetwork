@@ -9,13 +9,17 @@ type Blockchain struct {
 	Chain []Block
 }
 
+func (bc *Blockchain) initBlockChain() {
+	genBlock := getGenesisBlock()
+	genBlock.encryptData()
+	bc.Chain = []Block{genBlock}
+}
+
 // AddBlock add a block to current chain
 func (bc *Blockchain) addBlock(blockdata []byte) {
 	//chain is empty, initialize chain with genesis block
 	if bc.Chain == nil {
-		genBlock := getGenesisBlock()
-		genBlock.encryptData()
-		bc.Chain = []Block{genBlock}
+		bc.initBlockChain()
 	}
 
 	//create the new block. lastHash link the new block and last block together
