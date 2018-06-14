@@ -21,8 +21,8 @@ func TestAddingBlockToNewChain(t *testing.T) {
 	var block1 = chain[0]
 	var block2 = chain[1]
 
-	if block1.hash != block2.lasthash {
-		t.Errorf("Expect the previous has value %v, but got %v", block1.hash, block2.lasthash)
+	if block1.Hash != block2.Lasthash {
+		t.Errorf("Expect the previous has value %v, but got %v", block1.Hash, block2.Lasthash)
 		return
 	}
 }
@@ -37,14 +37,14 @@ func TestBlockChainValidation(t *testing.T) {
 
 	chain := bc.Chain
 
-	if chain[1].hash == chain[2].lasthash && bc.validateChain() == false {
+	if chain[1].Hash == chain[2].Lasthash && bc.validateChain() == false {
 		t.Errorf("Expect the hash value of first two blocks to match")
 		return
 	}
 
 	//manually change hash value, the validation shoudl fail
-	chain[1].hash = chain[1].hash + "111"
-	if chain[1].hash != chain[2].lasthash && bc.validateChain() == true {
+	chain[1].Hash = chain[1].Hash + "111"
+	if chain[1].Hash != chain[2].Lasthash && bc.validateChain() == true {
 		t.Errorf("Expect the hash value of first two blocks not to match and validation fail")
 		return
 	}
