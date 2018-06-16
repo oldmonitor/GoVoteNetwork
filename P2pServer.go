@@ -12,57 +12,43 @@ import (
 
 //P2pServer - struct for server
 type P2pServer struct {
-	P2pPort        int
-	PeerAddresses  []string
-	ConnectedPeers []*websocket.Conn
-	upgrader       websocket.Upgrader
+	P2pPort int //p2p port. It is being use for p2p communication
+	//PeerAddresses  []string
+	//ConnectedPeers []*websocket.Conn
+	Peers    []P2pPeer
+	upgrader websocket.Upgrader
 }
 
-//Initialize the p2p client/server
-func (s *P2pServer) Initialize(peersConfigFileName string, p2pPort int) {
-
-	//init peers config setting
-	file, err := os.Open(peersConfigFileName)
-	s.P2pPort = p2pPort
-
-	defer file.Close()
-	if err != nil {
-		println(err.Error())
-		return
-	}
-	scanner := bufio.NewScanner(file)
-	fmt.Println("Peers in data file:")
-	for scanner.Scan() {
-		//ignore local host with same port
-		//ws://localhost:5002
-		if scanner.Text() == "ws://localhost:"+strconv.Itoa(s.P2pPort) {
-			continue
-		}
-		s.PeerAddresses = append(s.PeerAddresses, scanner.Text())
-		fmt.Println(scanner.Text())
-	}
-
-	//upgrader with buffer size
-	s.upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
+//P2pPeer - struct for connect peer node
+type P2pPeer struct {
+	PeerAddress         string
+	HTTPPort            int
+	WebSocketConnection *websocket.Conn
+	IsConnected         bool
 }
 
 //StartServer listen on given port. Initialize must be called first.
-func (s *P2pServer) StartServer() {
+func (s *P2pServer) StartServer(peersConfigFileName string, p2pPort int) {
 
-	//dial the known peers
+	//initialize server config
+	s.initialize(peersConfigFileName, p2pPort)
+
 	dialer := websocket.Dialer{}
-	for _, arr := range s.PeerAddresses {
-		println("try connecting " + arr + "/ws")
-		conn, _, err := dialer.Dial(arr+"/ws", nil)
+
+	//for each peer address, dial the known port
+	for i := 0; i < len(s.Peers); i++ {
+		println("try connecting " + s.Peers[i].PeerAddress + "/ws")
+		conn, _, err := dialer.Dial(s.Peers[i].PeerAddress+"/ws", nil)
 
 		//if there is an error connecting to client, output error, else listen for message from connected peer
 		if err != nil {
+			s.removeUnresponsivePeer(s.Peers[i].PeerAddress)
+			i--
 			println(err.Error())
 		} else {
-			go s.wsListen(conn)
+			s.Peers[i].WebSocketConnection = conn
+			s.Peers[i].IsConnected = true
+			go s.wsListen(s.Peers[i])
 		}
 	}
 
@@ -75,26 +61,60 @@ func (s *P2pServer) StartServer() {
 	}
 }
 
-//wsListen - start listening on open connection
-func (s *P2pServer) wsListen(conn *websocket.Conn) {
+//Initialize - initialize the p2p client/server
+func (s *P2pServer) initialize(peersConfigFileName string, p2pPort int) {
 
-	//add connection to ConnectedPeers array
-	s.ConnectedPeers = append(s.ConnectedPeers, conn)
-	println(conn.RemoteAddr().String() + " Connected")
-	println("Peers#: " + strconv.Itoa(len(s.ConnectedPeers)))
+	file, err := os.Open(peersConfigFileName)
+	s.P2pPort = p2pPort
+
+	defer file.Close()
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	scanner := bufio.NewScanner(file)
+	fmt.Println("Peers in data file:")
+	for scanner.Scan() {
+		//ignore local host with same port
+
+		var peer P2pPeer
+		peer.PeerAddress = scanner.Text()
+		peer.IsConnected = false
+		fmt.Println(scanner.Text())
+		//if address is current local host, skip
+		if peer.PeerAddress == "ws://localhost:"+strconv.Itoa(s.P2pPort) {
+			continue
+		}
+
+		s.Peers = append(s.Peers, peer)
+
+	}
+
+	//upgrader with buffer size
+	s.upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+}
+
+//wsListen - start listening on open connection
+func (s *P2pServer) wsListen(peer P2pPeer) {
+
+	println(peer.WebSocketConnection.RemoteAddr().String() + " Connected")
+	println("Peers#: " + strconv.Itoa(s.getConnectedPeerCount()))
 	for {
-		messageType, p, err := conn.ReadMessage()
+		messageType, p, err := peer.WebSocketConnection.ReadMessage()
 
 		if err != nil {
 			//if there is connection error, remove peer and display message
-			println(conn.RemoteAddr().String() + " Disconnected")
-			s.removePeer(conn)
-			println("Peers: " + strconv.Itoa(len(s.ConnectedPeers)))
+			println(peer.WebSocketConnection.RemoteAddr().String() + " Disconnected")
+			s.removeDisconnectedPeer(peer.WebSocketConnection)
+			println("Peers: " + strconv.Itoa(s.getConnectedPeerCount()))
 			return
 		}
 		//print message
 		println(string(p))
-		if err = conn.WriteMessage(messageType, p); err != nil {
+		if err = peer.WebSocketConnection.WriteMessage(messageType, p); err != nil {
 			println(err.Error())
 			return
 		}
@@ -102,14 +122,35 @@ func (s *P2pServer) wsListen(conn *websocket.Conn) {
 }
 
 //removePeer removed connection from connectedPeers array
-func (s *P2pServer) removePeer(conn *websocket.Conn) bool {
-	for i, v := range s.ConnectedPeers {
-		if v == conn {
-			s.ConnectedPeers = append(s.ConnectedPeers[:i], s.ConnectedPeers[i+1:]...)
+func (s *P2pServer) removeDisconnectedPeer(conn *websocket.Conn) bool {
+	for i, v := range s.Peers {
+		if v.WebSocketConnection == conn {
+			s.Peers = append(s.Peers[:i], s.Peers[i+1:]...)
 			return true
 		}
 	}
 	return false
+}
+
+//removeUnresponsivePeer remove unresponseive peer from the collection
+func (s *P2pServer) removeUnresponsivePeer(address string) bool {
+	for i, v := range s.Peers {
+		if v.PeerAddress == address {
+			s.Peers = append(s.Peers[:i], s.Peers[i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+func (s P2pServer) getConnectedPeerCount() int {
+	var count int = 0
+	for _, v := range s.Peers {
+		if v.IsConnected == true {
+			count++
+		}
+	}
+	return count
 }
 
 //wsHanlder - web socket handler
@@ -120,5 +161,10 @@ func (s *P2pServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 		println(err.Error())
 		return
 	}
-	s.wsListen(conn)
+
+	var peer P2pPeer
+	peer.WebSocketConnection = conn
+	peer.IsConnected = true
+	s.Peers = append(s.Peers, peer)
+	s.wsListen(peer)
 }

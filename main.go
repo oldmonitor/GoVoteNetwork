@@ -8,16 +8,7 @@ import (
 
 //command - GoChain p2pPortNumber
 func main() {
-	/*err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	var s Server
-	s.blockChain.initBlockChain()
-	s.httpPort = os.Getenv("HTTP_PORT")
-	s.run()
-	*/
 	fmt.Println("Starting ...")
 	var portNumber int
 	//check if os.Args has only one arg. (note: first arg is the command itself.)
@@ -28,8 +19,9 @@ func main() {
 	if os.Args[1] != "" {
 		portNumber, _ = strconv.Atoi(os.Args[1])
 	}
+	//portNumber = 5001
 
 	var p P2pServer
-	p.Initialize("DataFiles\\peers.txt", portNumber)
-	p.StartServer()
+	p.StartServer("DataFiles\\peers.txt", portNumber)
+
 }
