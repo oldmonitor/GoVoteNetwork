@@ -66,6 +66,8 @@ func (s *HTTPServer) handleWriteBlock(w http.ResponseWriter, r *http.Request) {
 	s.blockChain.replaceChain(m)
 	s.blockChain.addBlock([]byte("new transaction 1"))
 	respondWithJSON(w, r, http.StatusCreated, s.blockChain)
+
+	//once a block is mined, need to sync with all connected peers. suggestion: use a flag
 }
 
 func respondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload Blockchain) {

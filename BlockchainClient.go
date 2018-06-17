@@ -11,8 +11,10 @@ import (
 var serverWaitGroup sync.WaitGroup
 
 type BlockchainClient struct {
-	p2pServer  P2PServer
-	httpServer HTTPServer
+	p2pServer       P2PServer
+	httpServer      HTTPServer
+	blockchain      Blockchain
+	isNewBlockAdded bool
 }
 
 func (bc *BlockchainClient) initClient(peersListFilePath string, p2pPortNumber int, httpPortNumber int) {
@@ -21,10 +23,13 @@ func (bc *BlockchainClient) initClient(peersListFilePath string, p2pPortNumber i
 
 	//initialize the httpserver
 	bc.initHttpServer(httpPortNumber)
+
 }
 
 func (bc *BlockchainClient) start() {
 	serverWaitGroup.Add(2)
+
+	bc.initBlockchain()
 
 	//start p2p server
 	go bc.p2pServer.startServer()
@@ -35,6 +40,10 @@ func (bc *BlockchainClient) start() {
 	serverWaitGroup.Wait()
 }
 
+func (bc *BlockchainClient) initBlockchain() {
+	bc.blockchain.initBlockChain()
+}
+
 func (bc *BlockchainClient) initHttpServer(httpPortNumber int) {
 	bc.httpServer.httpPort = httpPortNumber
 }
@@ -42,6 +51,7 @@ func (bc *BlockchainClient) initHttpServer(httpPortNumber int) {
 func (bc *BlockchainClient) initP2pServer(peersListFilePath string, p2pPortNumber int) {
 	file, err := os.Open(peersListFilePath)
 	bc.p2pServer.P2pPort = p2pPortNumber
+	bc.p2pServer.blockChain = &bc.blockchain
 
 	defer file.Close()
 	if err != nil {

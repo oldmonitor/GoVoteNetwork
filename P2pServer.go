@@ -9,9 +9,10 @@ import (
 
 //P2PServer - struct for server
 type P2PServer struct {
-	P2pPort  int //p2p port. It is being use for p2p communication
-	Peers    []P2PPeer
-	upgrader websocket.Upgrader
+	P2pPort    int //p2p port. It is being use for p2p communication
+	Peers      []P2PPeer
+	upgrader   websocket.Upgrader
+	blockChain *Blockchain
 }
 
 //P2PPeer - struct for connect peer node
@@ -49,8 +50,8 @@ func (s *P2PServer) startServer() {
 			s.Peers[i].IsConnected = true
 
 			//send a hello messaage to connected peer
-			initMessage := "Hello from " + s.Peers[i].WebSocketConnection.LocalAddr().String()
-			s.Peers[i].WebSocketConnection.WriteJSON(initMessage)
+			//initMessage := "Hello from " + s.Peers[i].WebSocketConnection.LocalAddr().String()
+			//s.Peers[i].WebSocketConnection.WriteJSON(initMessage)
 
 			//listen for message from client
 			go s.wsListen(s.Peers[i])
@@ -83,7 +84,8 @@ func (s *P2PServer) wsListen(peer P2PPeer) {
 			println("Peers: " + strconv.Itoa(s.getConnectedPeerCount()))
 			return
 		}
-		//print message
+
+		//ToDo: message received from peer. process blockchain
 		println("Message received: type " + strconv.Itoa(messageType) + ":" + string(p))
 	}
 }
@@ -110,6 +112,7 @@ func (s *P2PServer) removeUnresponsivePeer(address string) bool {
 	return false
 }
 
+//get totla connected peer
 func (s P2PServer) getConnectedPeerCount() int {
 	var count int
 	for _, v := range s.Peers {
@@ -134,5 +137,26 @@ func (s *P2PServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	peer.IsConnected = true
 	s.Peers = append(s.Peers, peer)
 
+	//send a blockchain to newly connected peer
+	s.sendBlockchainToPeer(peer)
+
+	//listen for message from peer
 	s.wsListen(peer)
+}
+
+func (s *P2PServer) sendBlockchainToPeer(peer P2PPeer) {
+
+	println("sending:")
+
+	println(s.blockChain.Chain[0].toString())
+	peer.WebSocketConnection.WriteJSON(s.blockChain)
+}
+
+//syncBlockchain sends updated blockchain to all connected peer
+func (s *P2PServer) syncBlockchain() {
+	for i := 0; i < len(s.Peers); i++ {
+		if s.Peers[i].IsConnected {
+			s.sendBlockchainToPeer(s.Peers[i])
+		}
+	}
 }

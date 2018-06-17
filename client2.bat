@@ -1,1 +1,1 @@
-gochain 5002
+gochain 5002 8002
