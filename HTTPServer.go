@@ -11,10 +11,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//Server for handling web request
+//HTTPServer for handling web request
 type HTTPServer struct {
 	httpPort   int
-	blockChain Blockchain
+	blockChain *Blockchain
+}
+
+//DataMessage constains data for new block
+type DataMessage struct {
+	Message string
 }
 
 func (s *HTTPServer) startServer() error {
@@ -54,18 +59,19 @@ func (s *HTTPServer) handleGetBlockchain(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *HTTPServer) handleWriteBlock(w http.ResponseWriter, r *http.Request) {
-	var m Blockchain
+	var msg DataMessage
 
+	//decode and save data as DataMessage object
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&m); err != nil {
-		respondWithJSON(w, r, http.StatusBadRequest, m)
+	if err := decoder.Decode(&msg); err != nil {
+		respondWithJSON(w, r, http.StatusBadRequest, *s.blockChain)
 		return
 	}
 	defer r.Body.Close()
 
-	s.blockChain.replaceChain(m)
-	s.blockChain.addBlock([]byte("new transaction 1"))
-	respondWithJSON(w, r, http.StatusCreated, s.blockChain)
+	//add data to the block
+	s.blockChain.addBlock([]byte(msg.Message))
+	respondWithJSON(w, r, http.StatusCreated, *s.blockChain)
 }
 
 func respondWithJSON(w http.ResponseWriter, r *http.Request, code int, payload Blockchain) {
