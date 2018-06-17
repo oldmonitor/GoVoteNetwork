@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -12,16 +13,16 @@ import (
 
 //Server for handling web request
 type HTTPServer struct {
-	httpPort   string
+	httpPort   int
 	blockChain Blockchain
 }
 
-func (s *HTTPServer) run() error {
+func (s *HTTPServer) startServer() error {
 	mux := s.makeMuxRouter()
 
-	log.Println("Listening on ", s.httpPort)
+	log.Println("\nHTTP listening on ", s.httpPort)
 	ser := &http.Server{
-		Addr:           ":" + s.httpPort,
+		Addr:           ":" + strconv.Itoa(s.httpPort),
 		Handler:        mux,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -32,6 +33,7 @@ func (s *HTTPServer) run() error {
 		return err
 	}
 
+	serverWaitGroup.Done()
 	return nil
 }
 
