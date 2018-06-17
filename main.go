@@ -19,7 +19,7 @@ func main() {
 	if os.Args[1] != "" {
 		portNumber, _ = strconv.Atoi(os.Args[1])
 	}
-	//portNumber = 5001
+	//portNumber = 5002
 
 	var p P2pServer
 	p.StartServer("DataFiles\\peers.txt", portNumber)

@@ -12,9 +12,7 @@ import (
 
 //P2pServer - struct for server
 type P2pServer struct {
-	P2pPort int //p2p port. It is being use for p2p communication
-	//PeerAddresses  []string
-	//ConnectedPeers []*websocket.Conn
+	P2pPort  int //p2p port. It is being use for p2p communication
 	Peers    []P2pPeer
 	upgrader websocket.Upgrader
 }
@@ -35,7 +33,8 @@ func (s *P2pServer) StartServer(peersConfigFileName string, p2pPort int) {
 
 	dialer := websocket.Dialer{}
 
-	//for each peer address, dial the known port
+	//for each peer address, dial the address of each client. If connection is establish, send
+	//a hello message and listen for response
 	for i := 0; i < len(s.Peers); i++ {
 		println("try connecting " + s.Peers[i].PeerAddress + "/ws")
 		conn, _, err := dialer.Dial(s.Peers[i].PeerAddress+"/ws", nil)
@@ -48,6 +47,12 @@ func (s *P2pServer) StartServer(peersConfigFileName string, p2pPort int) {
 		} else {
 			s.Peers[i].WebSocketConnection = conn
 			s.Peers[i].IsConnected = true
+
+			//send a hello messaage to connected peer
+			initMessage := "Hello from " + s.Peers[i].WebSocketConnection.LocalAddr().String()
+			s.Peers[i].WebSocketConnection.WriteJSON(initMessage)
+
+			//listen for message from client
 			go s.wsListen(s.Peers[i])
 		}
 	}
@@ -72,6 +77,8 @@ func (s *P2pServer) initialize(peersConfigFileName string, p2pPort int) {
 		println(err.Error())
 		return
 	}
+
+	//create a peer object for each entry in the config file
 	scanner := bufio.NewScanner(file)
 	fmt.Println("Peers in data file:")
 	for scanner.Scan() {
@@ -113,11 +120,7 @@ func (s *P2pServer) wsListen(peer P2pPeer) {
 			return
 		}
 		//print message
-		println(string(p))
-		if err = peer.WebSocketConnection.WriteMessage(messageType, p); err != nil {
-			println(err.Error())
-			return
-		}
+		println("Message received: type " + strconv.Itoa(messageType) + ":" + string(p))
 	}
 }
 
@@ -144,7 +147,7 @@ func (s *P2pServer) removeUnresponsivePeer(address string) bool {
 }
 
 func (s P2pServer) getConnectedPeerCount() int {
-	var count int = 0
+	var count int
 	for _, v := range s.Peers {
 		if v.IsConnected == true {
 			count++
@@ -166,5 +169,6 @@ func (s *P2pServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	peer.WebSocketConnection = conn
 	peer.IsConnected = true
 	s.Peers = append(s.Peers, peer)
+
 	s.wsListen(peer)
 }
