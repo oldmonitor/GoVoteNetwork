@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -77,16 +78,23 @@ func (s *P2PServer) wsListen(peer P2PPeer) {
 	for {
 		messageType, p, err := peer.WebSocketConnection.ReadMessage()
 
+		//err := peer.WebSocketConnection.ReadJSON(bc)
 		if err != nil {
 			//if there is connection error, remove peer and display message
+
 			println(peer.WebSocketConnection.RemoteAddr().String() + " Disconnected")
 			s.removeDisconnectedPeer(peer.WebSocketConnection)
 			println("Peers: " + strconv.Itoa(s.getConnectedPeerCount()))
 			return
 		}
+		var bc Blockchain
+		err = json.Unmarshal([]byte(p), &bc)
 
 		//ToDo: message received from peer. process blockchain
 		println("Message received: type " + strconv.Itoa(messageType) + ":" + string(p))
+		for i := 0; i < len(bc.Chain); i++ {
+			println(bc.Chain[i].toString())
+		}
 	}
 }
 
@@ -147,9 +155,10 @@ func (s *P2PServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 func (s *P2PServer) sendBlockchainToPeer(peer P2PPeer) {
 
 	println("sending:")
-
-	println(s.blockChain.Chain[0].toString())
-	peer.WebSocketConnection.WriteJSON(s.blockChain)
+	//initMessage := "Hello from " + peer.WebSocketConnection.LocalAddr().String()
+	bc := s.blockChain
+	//peer.WebSocketConnection.WriteJSON(initMessage)
+	peer.WebSocketConnection.WriteJSON(bc)
 }
 
 //syncBlockchain sends updated blockchain to all connected peer
