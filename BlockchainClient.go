@@ -40,7 +40,7 @@ func (bc *BlockchainClient) start() {
 	go bc.httpServer.startServer()
 
 	//listen for updated chain
-	//go bc.listenNewBlockMined()
+	go bc.listenNewBlockMined()
 
 	serverWaitGroup.Wait()
 }
