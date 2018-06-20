@@ -13,6 +13,9 @@ func main() {
 	var p2pPortNumber int
 	var httpPortNumber int
 
+	//p2pPortNumber = 3001
+	//httpPortNumber = 8001
+
 	//check if os.Args are valid (note: first arg is the command itself.)
 	if os.Args == nil || len(os.Args) <= 2 {
 		fmt.Println("Need pass p2p port number and http port number. Blockchain [p2pPortNumber] [httpPortNumber]")
