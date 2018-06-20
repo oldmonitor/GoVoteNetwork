@@ -13,8 +13,9 @@ import (
 
 //HTTPServer for handling web request
 type HTTPServer struct {
-	httpPort   int
-	blockChain *Blockchain
+	httpPort        int
+	blockChain      *Blockchain
+	isNewBlockAdded *bool
 }
 
 //DataMessage constains data for new block
@@ -71,6 +72,7 @@ func (s *HTTPServer) handleWriteBlock(w http.ResponseWriter, r *http.Request) {
 
 	//add data to the block
 	s.blockChain.addBlock([]byte(msg.Message))
+	*(s.isNewBlockAdded) = true
 	respondWithJSON(w, r, http.StatusCreated, *s.blockChain)
 }
 
