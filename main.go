@@ -6,15 +6,14 @@ import (
 	"strconv"
 )
 
-//command - GoChain p2pPortNumber
-func main() {
+var p2pPortNumber int
+var httpPortNumber int
+var peerListFilePath string
 
-	fmt.Println("Starting ...")
-	var p2pPortNumber int
-	var httpPortNumber int
-
+func init() {
 	//p2pPortNumber = 3001
 	//httpPortNumber = 8001
+	fmt.Println("Starting ...")
 
 	//check if os.Args are valid (note: first arg is the command itself.)
 	if os.Args == nil || len(os.Args) <= 2 {
@@ -29,11 +28,14 @@ func main() {
 	if os.Args[2] != "" {
 		httpPortNumber, _ = strconv.Atoi(os.Args[2])
 	}
+	peerListFilePath = "DataFiles\\peers.txt"
+}
 
-	//portNumber = 5002
+//command - GoChain p2pPortNumber
+func main() {
+
 	var client BlockchainClient
-	var peerListFilePath = "DataFiles\\peers.txt"
+
 	client.initClient(peerListFilePath, p2pPortNumber, httpPortNumber)
 	client.start()
-
 }

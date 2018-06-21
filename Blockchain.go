@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+var default_difficulty int = 4
+
 // Blockchain - chained transaction
 type Blockchain struct {
 	Chain []Block

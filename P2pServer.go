@@ -35,8 +35,7 @@ func (s *P2PServer) startServer() {
 
 	dialer := websocket.Dialer{}
 
-	//for each peer address, dial the address of each client. If connection is establish, send
-	//a hello message and listen for response
+	//for each peer address, dial the address of each client.
 	for i := 0; i < len(s.Peers); i++ {
 		println("Try connecting to peer " + s.Peers[i].PeerAddress + "/ws")
 		conn, _, err := dialer.Dial(s.Peers[i].PeerAddress+"/ws", nil)
@@ -49,10 +48,6 @@ func (s *P2PServer) startServer() {
 		} else {
 			s.Peers[i].WebSocketConnection = conn
 			s.Peers[i].IsConnected = true
-
-			//send a hello messaage to connected peer
-			//initMessage := "Hello from " + s.Peers[i].WebSocketConnection.LocalAddr().String()
-			//s.Peers[i].WebSocketConnection.WriteJSON(initMessage)
 
 			//listen for message from client
 			go s.wsListen(s.Peers[i])
@@ -124,7 +119,7 @@ func (s *P2PServer) removeUnresponsivePeer(address string) bool {
 	return false
 }
 
-//get totla connected peer
+//get total number of connected peer
 func (s P2PServer) getConnectedPeerCount() int {
 	var count int
 	for _, v := range s.Peers {
@@ -135,7 +130,8 @@ func (s P2PServer) getConnectedPeerCount() int {
 	return count
 }
 
-//wsHanlder - web socket handler
+//wsHanlder - web socket handler. This method is triggered when connection is establish.
+//send current blockchain to peer once connection is established
 func (s *P2PServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	s.upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := s.upgrader.Upgrade(w, r, nil)
@@ -144,6 +140,7 @@ func (s *P2PServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//add the connected peer to collection
 	var peer P2PPeer
 	peer.WebSocketConnection = conn
 	peer.IsConnected = true
@@ -158,14 +155,13 @@ func (s *P2PServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *P2PServer) sendBlockchainToPeer(peer P2PPeer) {
 
-	println("sending:")
-	//initMessage := "Hello from " + peer.WebSocketConnection.LocalAddr().String()
-	//peer.WebSocketConnection.WriteJSON(initMessage)
+	println("sending block chain to peer ", peer.PeerAddress)
 	bc := s.blockChain
 	peer.WebSocketConnection.WriteJSON(bc)
 }
 
-//syncBlockchain sends updated blockchain to all connected peer
+//syncBlockchain sends updated blockchain to all connected peer. This method is called when a new block
+//is mined
 func (s *P2PServer) syncBlockchain() {
 	for i := 0; i < len(s.Peers); i++ {
 		if s.Peers[i].IsConnected {

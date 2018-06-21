@@ -4,15 +4,18 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"time"
 )
 
 //Block is struct class for Block
 type Block struct {
-	Timestamp time.Time
-	Lasthash  string
-	Hash      string
-	Data      []byte
+	Timestamp  time.Time
+	Lasthash   string
+	Hash       string
+	Data       []byte
+	Difficulty int
+	Nonce      int
 }
 
 //ToString return string representation of the block
@@ -31,9 +34,18 @@ func (b Block) toString() string {
 
 //EncryptData encrypt data and store the hash value in hash property of block
 func (b *Block) encryptData() {
-	rawData := append([]byte(b.Timestamp.String()+b.Lasthash), b.Data...)
-	hashValue := createHash(rawData)
-	b.Hash = hashValue
+	b.Nonce = 1
+	for {
+
+		rawData := append([]byte(b.Timestamp.String()+b.Lasthash+strconv.Itoa(b.Nonce)), b.Data...)
+		hashValue := createHash(rawData)
+
+		//if(HasPrefix()
+		b.Hash = hashValue
+
+		b.Nonce++
+	}
+
 }
 
 //CreateHash create a has value of given data

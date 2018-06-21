@@ -45,8 +45,8 @@ func (s *HTTPServer) startServer() error {
 
 func (s *HTTPServer) makeMuxRouter() http.Handler {
 	muxRouter := mux.NewRouter()
-	muxRouter.HandleFunc("/", s.handleGetBlockchain).Methods("GET")
-	muxRouter.HandleFunc("/", s.handleWriteBlock).Methods("POST")
+	muxRouter.HandleFunc("/bc", s.handleGetBlockchain).Methods("GET")
+	muxRouter.HandleFunc("/mine", s.handleWriteBlock).Methods("POST")
 	return muxRouter
 }
 
