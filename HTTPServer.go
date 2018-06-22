@@ -38,8 +38,6 @@ func (s *HTTPServer) startServer() error {
 	if err := ser.ListenAndServe(); err != nil {
 		return err
 	}
-
-	serverWaitGroup.Done()
 	return nil
 }
 

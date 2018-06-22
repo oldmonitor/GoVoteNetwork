@@ -34,18 +34,9 @@ func (b Block) toString() string {
 
 //EncryptData encrypt data and store the hash value in hash property of block
 func (b *Block) encryptData() {
-	b.Nonce = 1
-	for {
-
-		rawData := append([]byte(b.Timestamp.String()+b.Lasthash+strconv.Itoa(b.Nonce)), b.Data...)
-		hashValue := createHash(rawData)
-
-		//if(HasPrefix()
-		b.Hash = hashValue
-
-		b.Nonce++
-	}
-
+	rawData := append([]byte(b.Timestamp.String()+b.Lasthash+strconv.Itoa(b.Nonce)), b.Data...)
+	hashValue := createHash(rawData)
+	b.Hash = hashValue
 }
 
 //CreateHash create a has value of given data

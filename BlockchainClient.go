@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var serverWaitGroup sync.WaitGroup
@@ -24,14 +25,12 @@ func (bc *BlockchainClient) initClient(peersListFilePath string, p2pPortNumber i
 	//initialize the httpserver
 	bc.initHTTPServer(httpPortNumber)
 
-	bc.blockchain.initBlockChain()
+	bc.initBlockchain()
 
 }
 
 func (bc *BlockchainClient) start() {
-	serverWaitGroup.Add(3)
-
-	bc.initBlockchain()
+	serverWaitGroup.Add(2)
 
 	//start p2p server
 	go bc.p2pServer.startServer()
@@ -81,14 +80,14 @@ func (bc *BlockchainClient) initP2pServer(peersListFilePath string, p2pPortNumbe
 		}
 
 		bc.p2pServer.Peers = append(bc.p2pServer.Peers, peer)
-
 	}
-
 }
 
 //listen for flag indicating a new block has been mined
 func (bc *BlockchainClient) listenNewBlockMined() {
+	println("Start checking if new block is mined")
 	for {
+		time.Sleep(10 * time.Millisecond)
 		if bc.isNewBlockAdded {
 			println("New block is mined. Sync chain to connected clients")
 
@@ -97,4 +96,5 @@ func (bc *BlockchainClient) listenNewBlockMined() {
 			bc.isNewBlockAdded = false
 		}
 	}
+
 }

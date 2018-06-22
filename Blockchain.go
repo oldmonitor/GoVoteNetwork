@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"strings"
 	"time"
 )
 
-var default_difficulty int = 4
+var defaultDifficulty int = 3
+var mineRate = 3000
 
 // Blockchain - chained transaction
 type Blockchain struct {
@@ -72,17 +75,30 @@ func getGenesisBlock() Block {
 	b.Lasthash = "0000000000"
 	b.Data = []byte("0000000000")
 	b.encryptData()
+	b.Nonce = 0
+	b.Difficulty = defaultDifficulty
 	return b
 }
 
 // MineBlock Create a block for the chain
 func mineBlock(lastBlock Block, blockData []byte) Block {
 	var newBlock = Block{
-		Timestamp: time.Now(),
-		Lasthash:  lastBlock.Hash,
-		Data:      blockData}
-
-	newBlock.encryptData()
+		Lasthash:   lastBlock.Hash,
+		Data:       blockData,
+		Nonce:      0,
+		Difficulty: lastBlock.Difficulty}
+	fmt.Println("Starting mining:")
+	for {
+		newBlock.Nonce++
+		newBlock.encryptData()
+		if newBlock.Nonce%500 == 0 {
+			fmt.Println("nonce: ", newBlock.Nonce)
+		}
+		if strings.HasPrefix(newBlock.Hash, strings.Repeat("0", newBlock.Difficulty)) {
+			newBlock.Timestamp = time.Now()
+			break
+		}
+	}
 
 	return newBlock
 }
