@@ -7,7 +7,7 @@ import (
 )
 
 var defaultDifficulty int = 3
-var mineRate = 3000
+var mineRate = 3000 //default in millisecond
 
 // Blockchain - chained transaction
 type Blockchain struct {
@@ -30,6 +30,7 @@ func (bc *Blockchain) addBlock(blockdata []byte) {
 	//create the new block. lastHash link the new block and last block together
 	var lastBlock = bc.Chain[len(bc.Chain)-1]
 
+	//mine a block
 	var newBlock = mineBlock(lastBlock, blockdata)
 
 	//append block to chain
@@ -90,15 +91,30 @@ func mineBlock(lastBlock Block, blockData []byte) Block {
 	fmt.Println("Starting mining:")
 	for {
 		newBlock.Nonce++
+		newBlock.Timestamp = time.Now()
 		newBlock.encryptData()
 		if newBlock.Nonce%500 == 0 {
 			fmt.Println("nonce: ", newBlock.Nonce)
 		}
 		if strings.HasPrefix(newBlock.Hash, strings.Repeat("0", newBlock.Difficulty)) {
-			newBlock.Timestamp = time.Now()
+
 			break
 		}
 	}
-
+	adjustDifficulty(&newBlock, mineRate)
 	return newBlock
+}
+
+//if amount of mining time is larger then mineRate, lower difficulty, else increase difficulty
+func adjustDifficulty(lastBlock *Block, mineRate int) {
+	diff := time.Now().Sub(lastBlock.Timestamp)
+
+	//if block takes longer than mineRate to mine, increase difficulty else lower difficulty
+	if (diff.Nanoseconds() / 1000000) > int64(mineRate) {
+		lastBlock.Difficulty++
+	} else {
+		if lastBlock.Difficulty > 1 {
+			lastBlock.Difficulty--
+		}
+	}
 }

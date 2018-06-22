@@ -1,7 +1,9 @@
 package main
 
 import (
+	"strings"
 	"testing"
+	"time"
 )
 
 //Test when adding new block to new chain, the len of chain should be 2 and the second item's previous hash value
@@ -93,4 +95,48 @@ func TestTryingToReplaceWithShorterChain(t *testing.T) {
 		t.Errorf("Chain get replaced by shorter chain")
 		return
 	}
+}
+
+//if mine with diffulty level 2, the hash value should start with two 0
+func TestMiningWithDiffultyLevelTwo(t *testing.T) {
+	var bc Blockchain
+	bc.initBlockChain()
+	bc.Chain[0].Difficulty = 2
+	bc.addBlock([]byte("new transaction 1"))
+	var chainLength = len(bc.Chain)
+	var lastBlock = bc.Chain[chainLength-1]
+
+	if strings.HasPrefix(lastBlock.Hash, strings.Repeat("0", lastBlock.Difficulty)) == false {
+		t.Errorf("The hash of last block is not valid")
+		return
+	}
+
+	return
+}
+
+//if the block
+func TestDynamicAdjustDiffultyLevel(t *testing.T) {
+	var newBlock = Block{
+		Lasthash:   "0000000",
+		Data:       []byte("This is test"),
+		Nonce:      0,
+		Difficulty: 2,
+	}
+
+	var mRate int
+	mRate = 3000
+	originalDifficulty := newBlock.Difficulty
+	newBlock.Timestamp = time.Now().Add(time.Millisecond * time.Duration(mRate*-2))
+	adjustDifficulty(&newBlock, mRate)
+	if newBlock.Difficulty <= originalDifficulty {
+		t.Errorf("Expect the difficulty level increase to 3")
+	}
+
+	newBlock.Difficulty = 2
+	newBlock.Timestamp = time.Now().Add(time.Millisecond * time.Duration(mRate/-2))
+	adjustDifficulty(&newBlock, mRate)
+	if newBlock.Difficulty >= originalDifficulty {
+		t.Errorf("Expect the difficulty level decrease to 1")
+	}
+
 }

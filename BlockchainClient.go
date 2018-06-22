@@ -96,5 +96,4 @@ func (bc *BlockchainClient) listenNewBlockMined() {
 			bc.isNewBlockAdded = false
 		}
 	}
-
 }
