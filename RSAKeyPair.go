@@ -28,4 +28,5 @@ func (kp *RSAKeyPair) generateKey() {
 	//save private key
 	privDER := x509.MarshalPKCS1PrivateKey(key)
 	kp.PrivateKey = privDER
+
 }
