@@ -1,17 +1,15 @@
 package main
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"encoding/asn1"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 )
 
 type Wallet struct {
-	Balance   int
+	Balance   float64
 	keyPair   RSAKeyPair
-	PublicKey []byte
+	PublicKey string
 }
 
 func (w *Wallet) initWallet() {
@@ -21,24 +19,18 @@ func (w *Wallet) initWallet() {
 }
 
 func (w *Wallet) generateKeyForWallet() {
-	reader := rand.Reader
-	bitSize := 2048
+	var keyPair RSAKeyPair
+	keyPair.generateKey()
 
-	//generate key pair
-	key, err := rsa.GenerateKey(reader, bitSize)
-	checkError(err)
-
-	//save public key
-	asn1Bytes, err := asn1.Marshal(key.PublicKey)
-	w.PublicKey = asn1Bytes
-	checkError(err)
+	w.keyPair = keyPair
+	w.PublicKey = hex.EncodeToString(keyPair.PublicKey)
 }
 
 func (w Wallet) toString() string {
 	output := fmt.Sprintf(`Wallet-
 		Balance: %s
 		Public Key: %s`,
-		string(strconv.Itoa(w.Balance)),
+		string(strconv.FormatFloat(w.Balance, 'E', -1, 64)),
 		w.PublicKey)
 	return output
 }
