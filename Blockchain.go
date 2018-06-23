@@ -89,18 +89,19 @@ func mineBlock(lastBlock Block, blockData []byte) Block {
 		Nonce:      0,
 		Difficulty: lastBlock.Difficulty}
 	fmt.Println("Starting mining:")
+
+	//continuously loop to find the correct hash
 	for {
 		newBlock.Nonce++
 		newBlock.Timestamp = time.Now()
+		//create has value
 		newBlock.encryptData()
-		if newBlock.Nonce%500 == 0 {
-			fmt.Println("nonce: ", newBlock.Nonce)
-		}
 		if strings.HasPrefix(newBlock.Hash, strings.Repeat("0", newBlock.Difficulty)) {
-
 			break
 		}
 	}
+
+	//after block is mine. adjust difficulty based on the amount of time taken
 	adjustDifficulty(&newBlock, mineRate)
 	return newBlock
 }
