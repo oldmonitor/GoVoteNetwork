@@ -67,6 +67,7 @@ func TestTryingToReplaceWithLongerChain(t *testing.T) {
 
 	var beforeLength = len(bc.Chain)
 	bc.replaceChain(bcLongerChain)
+	
 	var afterLength = len(bc.Chain)
 
 	if afterLength <= beforeLength {
