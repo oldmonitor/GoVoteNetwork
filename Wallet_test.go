@@ -13,4 +13,5 @@ func TestWalletKey(t *testing.T) {
 	if wallet.PublicKey == "" {
 		t.Errorf("Wallet public key is null after initialization")
 	}
+
 }

@@ -4,7 +4,12 @@ package main
 Location of common utility methods
 */
 import (
+	"crypto"
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -31,4 +36,31 @@ func newUUID() (string, error) {
 	// version 4 (pseudo-random); see section 4.1.3
 	uuid[6] = uuid[6]&^0xf0 | 0x40
 	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
+}
+
+//CreateHash create a has value of given data
+func createHash(data []byte) string {
+	h := sha256.New()
+	h.Write(data)
+	md := h.Sum(nil)
+	mdStr := hex.EncodeToString(md)
+	return mdStr
+}
+
+//sign hash value with private key
+func rsaSign(privateKey []byte, data []byte) []byte {
+	var enckey, _ = x509.ParsePKCS1PrivateKey(privateKey)
+	var signedData, _ = rsa.SignPKCS1v15(rand.Reader, enckey, crypto.SHA256, sha256.New().Sum(nil))
+	return signedData
+}
+
+//verify the signature with public key
+func rsaUnsign(publicKey []byte, message []byte, signature []byte) bool {
+	//todo: need to add code for signature verification
+	//var pKey, _ = x509.ParsePKCS1PublicKey(publicKey)
+	//err := rsa.VerifyPKCS1v15(pKey, crypto.SHA256, sha256.New().Sum(nil), signature)
+
+	//
+	return true
+
 }

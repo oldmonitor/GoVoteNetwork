@@ -3,12 +3,20 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 type Transaction struct {
-	id     string //unique identifier of transaction
-	input  string
-	output []TransactionOutput
+	id      string //unique identifier of transaction
+	input   TransactionInput
+	outputs []TransactionOutput
+}
+
+type TransactionInput struct {
+	timestamp time.Time //timestamp
+	amount    float64   //transfer amount
+	address   string    //sender address
+	signature string    //sender signature
 }
 
 type TransactionOutput struct {
@@ -25,13 +33,27 @@ func createNewTransaction(senderWallet Wallet, recipient string, amount float64)
 	}
 
 	//sender
-	newTransaction.output = append(newTransaction.output, TransactionOutput{
+	newTransaction.outputs = append(newTransaction.outputs, TransactionOutput{
 		address: senderWallet.PublicKey, amount: senderWallet.Balance - amount,
 	})
 
 	//recipient
-	newTransaction.output = append(newTransaction.output, TransactionOutput{
+	newTransaction.outputs = append(newTransaction.outputs, TransactionOutput{
 		address: recipient, amount: amount,
 	})
+
+	//sign transaction
+	signTransaction(&newTransaction, senderWallet)
+
 	return newTransaction, nil
+}
+
+//put digit signature to transaction
+func signTransaction(transaction *Transaction, wallet Wallet) {
+	var tranInput TransactionInput
+	tranInput.timestamp = time.Now()
+	tranInput.amount = wallet.Balance
+	tranInput.address = wallet.PublicKey
+	tranInput.signature = wallet.sign(transaction.outputs)
+	transaction.input = tranInput
 }

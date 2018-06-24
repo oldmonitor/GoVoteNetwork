@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -37,13 +35,4 @@ func (b *Block) encryptData() {
 	rawData := append([]byte(b.Timestamp.String()+b.Lasthash+strconv.Itoa(b.Nonce)), b.Data...)
 	hashValue := createHash(rawData)
 	b.Hash = hashValue
-}
-
-//CreateHash create a has value of given data
-func createHash(data []byte) string {
-	h := sha256.New()
-	h.Write(data)
-	md := h.Sum(nil)
-	mdStr := hex.EncodeToString(md)
-	return mdStr
 }
