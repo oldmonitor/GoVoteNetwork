@@ -57,10 +57,22 @@ func rsaSign(privateKey []byte, data []byte) []byte {
 //verify the signature with public key
 func rsaUnsign(publicKey []byte, message []byte, signature []byte) bool {
 	//todo: need to add code for signature verification
-	//var pKey, _ = x509.ParsePKCS1PublicKey(publicKey)
-	//err := rsa.VerifyPKCS1v15(pKey, crypto.SHA256, sha256.New().Sum(nil), signature)
+	var pKey, _ = x509.ParsePKCS1PublicKey(publicKey)
+	err := rsa.VerifyPKCS1v15(pKey, crypto.SHA256, sha256.New().Sum(nil), signature)
 
-	//
-	return true
+	if err != nil {
+		return true
+	} else {
+		return false
+	}
 
+}
+
+func convertByteArrayToHexString(data []byte) string {
+	return hex.EncodeToString(data)
+}
+
+func convertHexStringToByteArray(data string) []byte {
+	arrayData, _ := hex.DecodeString(data)
+	return arrayData
 }
