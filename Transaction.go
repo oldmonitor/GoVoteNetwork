@@ -6,12 +6,14 @@ import (
 	"time"
 )
 
+//Transaction struct
 type Transaction struct {
 	id      string //unique identifier of transaction
 	input   TransactionInput
 	outputs []TransactionOutput
 }
 
+//TransactionInput - addres from which money was sent
 type TransactionInput struct {
 	timestamp time.Time //timestamp
 	amount    float64   //transfer amount
@@ -19,6 +21,7 @@ type TransactionInput struct {
 	signature string    //sender signature
 }
 
+//TransactionOutput - address to which money was sent
 type TransactionOutput struct {
 	amount  float64
 	address string

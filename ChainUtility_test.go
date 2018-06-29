@@ -3,40 +3,44 @@ package main
 import (
 	"bytes"
 	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
-	"fmt"
-	"os"
+	"crypto/x509"
 	"testing"
 )
 
-func TestSignature(t *testing.T) {
+func TestSignatureWithGeneratedKey(t *testing.T) {
 	var keyPair RSAKeyPair
 	keyPair.generateKey()
 	var message = []byte("this is a test")
-
-	/*h := sha256.New()
-	h.Write(dataToSigned)
-	md := h.Sum(nil)
-	mdStr := hex.EncodeToString(md)
-	*/
-
 	var hashed = sha256.Sum256(message)
-	var pKey []byte = keyPair.PrivateKey
 
-	signature, err := SignPKCS1v15(rng, pKey, crypto.SHA256, hashed[:])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error from signing: %s\n", err)
-		return
-	}
+	var publicKey, _ = x509.ParsePKCS1PublicKey(keyPair.PublicKey)
+	var privateKey, _ = x509.ParsePKCS1PrivateKey(keyPair.PrivateKey)
+	signature, _ := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, hashed[:])
 
-	//	var signature = rsaSign(pKey, hashed[:])
+	error := rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, hashed[:], signature)
 
-	var err = rsaUnsign(keyPair.PublicKey, hashed[:], signature)
-	if err == false {
+	if error != nil {
 		t.Errorf("signature is not valid")
 	}
 }
 
+func TestVerifySignatureFunction(t *testing.T) {
+	var keyPair RSAKeyPair
+	keyPair.generateKey()
+	var message = []byte("this is a test")
+	var hashed = createHash(message)
+
+	var signature = rsaSign(keyPair.PrivateKey, []byte(hashed))
+
+	error := rsaUnsign(keyPair.PublicKey, []byte(hashed), signature)
+
+	if error != true {
+		t.Errorf("signature is not valid")
+	}
+}
 func TestByteArrayStringConversion(t *testing.T) {
 	sourceData := []byte{1, 2, 3}
 	finalData := convertHexStringToByteArray(convertByteArrayToHexString(sourceData))

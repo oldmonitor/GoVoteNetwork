@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var defaultDifficulty int = 3
+var defaultDifficulty = 3
 var mineRate = 3000 //default in millisecond
 
 // Blockchain - chained transaction

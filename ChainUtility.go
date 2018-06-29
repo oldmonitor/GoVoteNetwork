@@ -49,22 +49,21 @@ func createHash(data []byte) string {
 
 //sign hash value with private key
 func rsaSign(privateKey []byte, data []byte) []byte {
-	var enckey, _ = x509.ParsePKCS1PrivateKey(privateKey)
-	var signedData, _ = rsa.SignPKCS1v15(rand.Reader, enckey, crypto.SHA256, sha256.New().Sum(nil))
-	return signedData
+	var pKey, _ = x509.ParsePKCS1PrivateKey(privateKey)
+	signature, _ := rsa.SignPKCS1v15(rand.Reader, pKey, crypto.SHA256, data)
+	return signature
 }
 
 //verify the signature with public key
 func rsaUnsign(publicKey []byte, message []byte, signature []byte) bool {
-	//todo: need to add code for signature verification
 	var pKey, _ = x509.ParsePKCS1PublicKey(publicKey)
-	err := rsa.VerifyPKCS1v15(pKey, crypto.SHA256, sha256.New().Sum(nil), signature)
+	error := rsa.VerifyPKCS1v15(pKey, crypto.SHA256, message, signature)
 
-	if err != nil {
+	if error != nil {
 		return true
-	} else {
-		return false
 	}
+
+	return false
 
 }
 

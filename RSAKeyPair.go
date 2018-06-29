@@ -4,14 +4,15 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/asn1"
 )
 
+//RSAKeyPair struct for private & public key pair
 type RSAKeyPair struct {
 	PublicKey  []byte
 	PrivateKey []byte
 }
 
+//generate public private key pair
 func (kp *RSAKeyPair) generateKey() {
 	reader := rand.Reader
 	bitSize := 2048
@@ -21,7 +22,7 @@ func (kp *RSAKeyPair) generateKey() {
 	checkError(err)
 
 	//save public key
-	asn1Bytes, err := asn1.Marshal(key.PublicKey)
+	asn1Bytes := x509.MarshalPKCS1PublicKey(&key.PublicKey)
 	kp.PublicKey = asn1Bytes
 	checkError(err)
 

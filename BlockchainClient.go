@@ -11,6 +11,7 @@ import (
 
 var serverWaitGroup sync.WaitGroup
 
+//BlockchainClient struct for block chain client. Container object for p2p server and http server
 type BlockchainClient struct {
 	p2pServer       P2PServer
 	httpServer      HTTPServer

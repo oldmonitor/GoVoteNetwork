@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+//Wallet - contains unique address and public private key pair
 type Wallet struct {
 	Balance   float64
 	keyPair   RSAKeyPair
@@ -26,13 +27,13 @@ func (w *Wallet) generateKeyForWallet() {
 }
 
 func (w Wallet) sign(tranOutputs []TransactionOutput) string {
-	hashValue := w.CreateHashOfTransactionOutput(tranOutputs)
+	hashValue := w.createHashOfTransactionOutput(tranOutputs)
 	signedHash := rsaSign(w.keyPair.PrivateKey, []byte(hashValue))
 	return hex.EncodeToString(signedHash)
 }
 
 func (w Wallet) verifySignature(t Transaction) bool {
-	hashValue := w.CreateHashOfTransactionOutput(t.outputs)
+	hashValue := w.createHashOfTransactionOutput(t.outputs)
 	signature, _ := hex.DecodeString(t.input.signature)
 	message := []byte(hashValue)
 
@@ -41,7 +42,7 @@ func (w Wallet) verifySignature(t Transaction) bool {
 	return isVerified
 }
 
-func (w Wallet) CreateHashOfTransactionOutput(tranOutputs []TransactionOutput) string {
+func (w Wallet) createHashOfTransactionOutput(tranOutputs []TransactionOutput) string {
 	var rawData []byte
 	var newData []byte
 	for _, element := range tranOutputs {
